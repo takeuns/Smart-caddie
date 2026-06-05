@@ -1,0 +1,6 @@
+{
+  "name": "스마트캐디",
+  "description": "실시간 GPS 비거리 측정, 미니어처 코스 뷰, AI 스윙 분석 및 맞춤 페어웨이 차트 공략을 제공하는 스마트캐디 앱입니다.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
