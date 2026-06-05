@@ -41,6 +41,12 @@ data class AdjustedHoleDistances(
     val lateralDriftYards: Double
 )
 
+data class BallTrackerMetrics(
+    val ballToGreenDistance: Int,
+    val userToBallDistance: Int,
+    val unit: String
+)
+
 data class RoundDriveTrend(
     val roundNumber: Int,
     val roundName: String,
@@ -198,6 +204,10 @@ class CaddyViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _lastVoiceResponse = MutableStateFlow("")
     val lastVoiceResponse: StateFlow<String> = _lastVoiceResponse.asStateFlow()
+
+    // Real-time GPS ball tracking state
+    private val _ballLocation = MutableStateFlow<Pair<Double, Double>?>(null)
+    val ballLocation: StateFlow<Pair<Double, Double>?> = _ballLocation.asStateFlow()
 
     init {
         // Automatically set first course as selected once loaded
@@ -457,6 +467,52 @@ class CaddyViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setTargetPosition(x: Float, y: Float) {
         _targetPosition.value = Pair(x.coerceIn(0.0f, 1.0f), y.coerceIn(0.0f, 1.0f))
+    }
+
+    fun markBallLocation() {
+        val hole = _selectedHole.value ?: return
+        if (_gpsLiveMode.value && _liveLocation.value != null) {
+            _ballLocation.value = _liveLocation.value
+        } else {
+            // Simulated player location
+            val t = _simulatedProgress.value.toDouble()
+            val playerLat = hole.teeLatitude + (hole.greenLatitude - hole.teeLatitude) * t
+            val playerLng = hole.teeLongitude + (hole.greenLongitude - hole.teeLongitude) * t
+            _ballLocation.value = Pair(playerLat, playerLng)
+        }
+    }
+
+    fun clearBallLocation() {
+        _ballLocation.value = null
+    }
+
+    fun getBallTrackerMetrics(): BallTrackerMetrics? {
+        val ball = _ballLocation.value ?: return null
+        val hole = _selectedHole.value ?: return null
+
+        val playerLat: Double
+        val playerLng: Double
+
+        if (_gpsLiveMode.value && _liveLocation.value != null) {
+            playerLat = _liveLocation.value!!.first
+            playerLng = _liveLocation.value!!.second
+        } else {
+            val t = _simulatedProgress.value.toDouble()
+            playerLat = hole.teeLatitude + (hole.greenLatitude - hole.teeLatitude) * t
+            playerLng = hole.teeLongitude + (hole.greenLongitude - hole.teeLongitude) * t
+        }
+
+        val distBallToGreen = haversineYards(ball.first, ball.second, hole.greenLatitude, hole.greenLongitude)
+        val distUserToBall = haversineYards(playerLat, playerLng, ball.first, ball.second)
+
+        val conversion = if (_metricUnitYards.value) 1.0 else 0.9144
+        val unit = if (_metricUnitYards.value) "yd" else "m"
+
+        return BallTrackerMetrics(
+            ballToGreenDistance = (distBallToGreen * conversion).toInt(),
+            userToBallDistance = (distUserToBall * conversion).toInt(),
+            unit = unit
+        )
     }
 
     fun setVoiceCaddyEnabled(enabled: Boolean) {

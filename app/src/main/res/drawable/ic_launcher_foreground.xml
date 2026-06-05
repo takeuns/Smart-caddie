@@ -1,30 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+    
+    <!-- Outer safe boundary indicator / subtle premium glowing halo for the golf cup -->
+    <path 
+        android:fillColor="#15FFFFFF" 
+        android:pathData="M34,74 C34,69 43,65.5 54,65.5 C65,65.5 74,69 74,74 C74,79 65,82.5 54,82.5 C43,82.5 34,79 34,74 Z" />
+    
+    <!-- The Dark Golf Hole Cup at the bottom of the flag pin -->
+    <path 
+        android:fillColor="#151719" 
+        android:pathData="M49,74 C49,72.5 51.2,71.5 54,71.5 C56.8,71.5 59,72.5 59,74 C59,75.5 56.8,76.5 54,76.5 C51.2,76.5 49,75.5 49,74 Z" />
+    
+    <!-- Flag Pole / Pin -->
+    <path 
+        android:fillColor="#E2E2E6" 
+        android:pathData="M53,24 H55 V74 H53 Z" />
+    
+    <!-- Elegant Triangular Red Pin Flag -->
+    <path 
+        android:fillColor="#FF4D5E" 
+        android:pathData="M53,24 L29,34.5 L53,45 Z" />
+
+    <!-- Pure White Golf Ball sitting perfectly on the green layout -->
+    <path 
+        android:fillColor="#FFFFFF" 
+        android:pathData="M65,74.5 C67.2,74.5 69,72.7 69,70.5 C69,68.3 67.2,66.5 65,66.5 C62.8,66.5 61,68.3 61,70.5 C61,72.7 62.8,74.5 65,74.5 Z" />
+        
+    <!-- Tiny subtle shadow under the golf ball for ultimate visual depth -->
+    <path 
+        android:fillColor="#30000000" 
+        android:pathData="M61.8,74 M61.8,73.8 C61.8,74.5 63.2,75 65,75 C66.8,75 68.2,74.5 68.2,73.8 C68.2,73.1 66.8,72.6 65,72.6 C63.2,72.6 61.8,73.1 61.8,73.8 Z" />
 </vector>

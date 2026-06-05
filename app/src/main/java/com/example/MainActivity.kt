@@ -665,6 +665,9 @@ fun CourseGuideScreen(
     val aiClubSuggestion by viewModel.aiClubSuggestion.collectAsStateWithLifecycle()
     val clubSuggestionError by viewModel.clubSuggestionError.collectAsStateWithLifecycle()
 
+    val ballLocation by viewModel.ballLocation.collectAsStateWithLifecycle()
+    val ballMetrics = viewModel.getBallTrackerMetrics()
+
     var showCourseSelectDialog by remember { mutableStateOf(false) }
 
     // Re-verify remaining yards and recommendations with dynamic Play-As adjustments
@@ -1404,6 +1407,46 @@ fun CourseGuideScreen(
                                 center = Offset(playerX, playerY)
                             )
 
+                            // Draw marked ball if present
+                            if (ballLocation != null) {
+                                val latDiff = selectedHole.greenLatitude - selectedHole.teeLatitude
+                                val platDiff = ballLocation!!.first - selectedHole.teeLatitude
+                                val rawProgX = if (latDiff != 0.0) (platDiff / latDiff).toFloat() else 0.5f
+                                val ballX = (0.08f + (0.8f * rawProgX)).coerceIn(0.08f, 0.88f) * w
+                                val ballY = h * 0.42f // Offset slightly up to avoid direct overlapping with player
+
+                                // Dotted path from Ball to green
+                                drawLine(
+                                    color = GolfBunkerGold.copy(alpha = 0.8f),
+                                    start = Offset(ballX, ballY),
+                                    end = Offset(greenCenterX, greenCenterY),
+                                    strokeWidth = 3f,
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
+                                )
+
+                                // Dotted path from Player to Ball
+                                drawLine(
+                                    color = GolfWaterBlue.copy(alpha = 0.8f),
+                                    start = Offset(playerX, playerY),
+                                    end = Offset(ballX, ballY),
+                                    strokeWidth = 3f,
+                                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(11f, 11f), 0f)
+                                )
+
+                                // Orange golf ball marker
+                                drawCircle(
+                                    color = Color(0xFFFF9800),
+                                    radius = 11.dp.toPx(),
+                                    center = Offset(ballX, ballY),
+                                    style = Stroke(width = 3.dp.toPx())
+                                )
+                                drawCircle(
+                                    color = Color.White,
+                                    radius = 6.dp.toPx(),
+                                    center = Offset(ballX, ballY)
+                                )
+                            }
+
                             // Target Pin layout based on tap coordinates
                             val targetCanvasX = targetPosition.first * w
                             val targetCanvasY = targetPosition.second * h
@@ -1595,6 +1638,168 @@ fun CourseGuideScreen(
                                 color = GolfBunkerGold,
                                 textAlign = TextAlign.Center
                             )
+                        }
+                    }
+                }
+            }
+
+            // 📡 REAL-TIME GPS SHOT TRACKER & BALL DISTANCE UTILITY
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().testTag("gps_ball_tracker_card"),
+                    colors = CardDefaults.cardColors(containerColor = GolfCardBg),
+                    border = BorderStroke(1.dp, if (ballLocation != null) GolfGreenPrimary else GolfCardBorder),
+                    shape = RoundedCornerShape(18.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(if (ballLocation != null) GolfGreenDark else GolfSlateBg),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.LocationOn,
+                                        contentDescription = "공 추적기 아이콘",
+                                        tint = if (ballLocation != null) GolfGreenPrimary else GolfMuted,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        text = "GPS 샷 비거리 & 볼 트래커",
+                                        color = GolfSoftWhite,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                    Text(
+                                        text = if (ballLocation != null) "실시간 공 위치와 홀(그린) 간 거리 추적 중" else "볼 비거리 및 하프백 실위치 트래킹 비활성",
+                                        color = if (ballLocation != null) GolfGreenPrimary else GolfMuted,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Divider(color = GolfCardBorder, thickness = 0.5.dp)
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        if (ballLocation == null) {
+                            // Empty state
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "볼의 최초 타구 위치가 비어 있습니다.\n샷을 한 직후 아래 단추를 눌러 실시간 비거리를 세밀하게 추적해보세요!",
+                                    color = GolfMuted,
+                                    fontSize = 12.sp,
+                                    textAlign = TextAlign.Center,
+                                    lineHeight = 16.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Button(
+                                    onClick = { viewModel.markBallLocation() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = GolfGreenDark),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.fillMaxWidth().testTag("mark_ball_btn")
+                                ) {
+                                    Icon(Icons.Default.AddLocation, contentDescription = "타구 위치 마킹", tint = GolfGreenPrimary, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("현재 내 위치를 볼 위치로 마킹", color = GolfGreenPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+                            }
+                        } else {
+                            // Active tracking state
+                            if (ballMetrics != null) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    // Metric A: Distance from Ball to Hole
+                                    Card(
+                                        modifier = Modifier.weight(1f),
+                                        colors = CardDefaults.cardColors(containerColor = GolfSlateBg),
+                                        border = BorderStroke(1.dp, GolfGreenPrimary.copy(alpha = 0.3f))
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Icon(Icons.Default.Flag, contentDescription = "볼에서 핀까지", tint = GolfGreenPrimary, modifier = Modifier.size(16.dp))
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text("볼에서 핀까지", fontSize = 10.sp, color = GolfMuted, fontWeight = FontWeight.Bold)
+                                            Text(
+                                                text = "${ballMetrics.ballToGreenDistance} ${ballMetrics.unit}",
+                                                fontSize = 20.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = GolfGreenPrimary
+                                            )
+                                        }
+                                    }
+
+                                    // Metric B: Distance from user to Ball (Shot distance!)
+                                    Card(
+                                        modifier = Modifier.weight(1f),
+                                        colors = CardDefaults.cardColors(containerColor = GolfSlateBg),
+                                        border = BorderStroke(1.dp, GolfCardBorder)
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Icon(Icons.Default.DirectionsWalk, contentDescription = "현재 걸어온 비거리", tint = GolfBunkerGold, modifier = Modifier.size(16.dp))
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text("마크한 볼과의 거리", fontSize = 10.sp, color = GolfMuted, fontWeight = FontWeight.Bold)
+                                            Text(
+                                                text = "${ballMetrics.userToBallDistance} ${ballMetrics.unit}",
+                                                fontSize = 20.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = GolfBunkerGold
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    OutlinedButton(
+                                        onClick = { viewModel.markBallLocation() },
+                                        modifier = Modifier.weight(1f).testTag("remark_ball_btn"),
+                                        border = BorderStroke(1.dp, GolfGreenPrimary),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = GolfGreenPrimary),
+                                        shape = RoundedCornerShape(10.dp)
+                                    ) {
+                                        Text("볼 위치 재마킹", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                    }
+
+                                    OutlinedButton(
+                                        onClick = { viewModel.clearBallLocation() },
+                                        modifier = Modifier.weight(1f).testTag("clear_ball_btn"),
+                                        border = BorderStroke(1.dp, GolfError.copy(alpha = 0.5f)),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = GolfError),
+                                        shape = RoundedCornerShape(10.dp)
+                                    ) {
+                                        Text("마킹 지우기", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
