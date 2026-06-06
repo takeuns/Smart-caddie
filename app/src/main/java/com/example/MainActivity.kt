@@ -549,7 +549,7 @@ fun CaddyTopAppBar(viewModel: CaddyViewModel) {
             Spacer(modifier = Modifier.width(10.dp))
             Column {
                 Text(
-                    text = "스마트캐디 (Smart Caddy)",
+                    text = "골프캐디",
                     color = GolfSoftWhite,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold
