@@ -1052,6 +1052,177 @@ fun CourseGuideScreen(
             }
         }
 
+        if (selectedHole != null && gpsLiveMode) {
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                        .testTag("gps_info_dashboard_card"),
+                    colors = CardDefaults.cardColors(containerColor = GolfGreenDark.copy(alpha = 0.55f)),
+                    border = BorderStroke(1.dp, GolfGreenPrimary.copy(alpha = 0.6f)),
+                    shape = RoundedCornerShape(18.dp)
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.GpsFixed,
+                                    contentDescription = "실시간 GPS 탐색기",
+                                    tint = GolfGreenPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "실시간 GPS 내 위치 ➔ 그린 거리 측정",
+                                    color = GolfSoftWhite,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp
+                                )
+                            }
+                            
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(GolfGreenPrimary)
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = "LIVE",
+                                    color = GolfSlateBg,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        
+                        if (liveLocation == null) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    color = GolfGreenPrimary,
+                                    strokeWidth = 2.dp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "GPS 신호 위성 수신을 대기 중입니다...",
+                                    color = GolfMuted,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "현재 GPS 좌표",
+                                        color = GolfMuted,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "위도: ${String.format("%.6f", liveLocation!!.first)}°\n경도: ${String.format("%.6f", liveLocation!!.second)}°",
+                                        color = GolfSoftWhite,
+                                        lineHeight = 15.sp,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        text = "현재 위치 ➡️ 그린(핀)",
+                                        color = GolfGreenPrimary,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "${distances.playerToGreen} $unitStr",
+                                        color = GolfGreenPrimary,
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Black
+                                    )
+                                    Text(
+                                        text = "보정 거리: ${adjustedDistances.playerToGreenPlayAs} $unitStr",
+                                        color = GolfBunkerGold,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        HorizontalDivider(color = GolfCardBorder.copy(alpha = 0.5f), thickness = 0.5.dp)
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Text(
+                            text = "💡 실내 수신대비 가상 GPS 이동 시뮬레이터",
+                            color = GolfBunkerGold,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 6.dp)
+                        )
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Button(
+                                onClick = { viewModel.walkGpsTowardGreen(15.0) },
+                                colors = ButtonDefaults.buttonColors(containerColor = GolfSlateBg),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.weight(1.2f).height(32.dp).testTag("walk_toward_green_btn"),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Icon(Icons.Default.DirectionsWalk, contentDescription = "그린 방향", tint = GolfGreenPrimary, modifier = Modifier.size(12.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("그린 ➔ 15m", color = GolfGreenPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                            
+                            Button(
+                                onClick = { viewModel.walkGpsAwayFromGreen(15.0) },
+                                colors = ButtonDefaults.buttonColors(containerColor = GolfSlateBg),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.weight(1.2f).height(32.dp).testTag("walk_away_green_btn"),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Icon(Icons.Default.DirectionsWalk, contentDescription = "티박스 방향", tint = GolfMuted, modifier = Modifier.size(12.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("티방향 ➔ 15m", color = GolfSoftWhite, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            Button(
+                                onClick = { viewModel.resetGpsSimulation() },
+                                colors = ButtonDefaults.buttonColors(containerColor = GolfSlateBg),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.weight(0.9f).height(32.dp).testTag("reset_gps_sim_btn"),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = "초기화", tint = GolfError, modifier = Modifier.size(12.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("초기화", color = GolfError, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         if (selectedHole != null) {
             item {
                 Card(

@@ -465,6 +465,40 @@ class CaddyViewModel(application: Application) : AndroidViewModel(application) {
         _simulatedProgress.value = progress.coerceIn(0.0f, 1.0f)
     }
 
+    private var gpsSimulatedFraction = 0.0
+
+    fun resetGpsSimulation() {
+        val hole = _selectedHole.value ?: return
+        gpsSimulatedFraction = 0.0
+        val lat = hole.teeLatitude
+        val lng = hole.teeLongitude
+        updateLiveLocation(lat, lng)
+    }
+
+    fun walkGpsTowardGreen(meters: Double) {
+        val hole = _selectedHole.value ?: return
+        val totalLengthMct = hole.distanceYards * 0.9144
+        if (totalLengthMct <= 0.0) return
+        val deltaFraction = meters / totalLengthMct
+        gpsSimulatedFraction = (gpsSimulatedFraction + deltaFraction).coerceIn(0.0, 1.0)
+        
+        val lat = hole.teeLatitude + (hole.greenLatitude - hole.teeLatitude) * gpsSimulatedFraction
+        val lng = hole.teeLongitude + (hole.greenLongitude - hole.teeLongitude) * gpsSimulatedFraction
+        updateLiveLocation(lat, lng)
+    }
+
+    fun walkGpsAwayFromGreen(meters: Double) {
+        val hole = _selectedHole.value ?: return
+        val totalLengthMct = hole.distanceYards * 0.9144
+        if (totalLengthMct <= 0.0) return
+        val deltaFraction = meters / totalLengthMct
+        gpsSimulatedFraction = (gpsSimulatedFraction - deltaFraction).coerceIn(0.0, 1.0)
+        
+        val lat = hole.teeLatitude + (hole.greenLatitude - hole.teeLatitude) * gpsSimulatedFraction
+        val lng = hole.teeLongitude + (hole.greenLongitude - hole.teeLongitude) * gpsSimulatedFraction
+        updateLiveLocation(lat, lng)
+    }
+
     fun setTargetPosition(x: Float, y: Float) {
         _targetPosition.value = Pair(x.coerceIn(0.0f, 1.0f), y.coerceIn(0.0f, 1.0f))
     }
